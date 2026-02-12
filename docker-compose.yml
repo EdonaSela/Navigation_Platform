@@ -6,7 +6,7 @@ services:
       - ACCEPT_EULA=Y
       - MSSQL_SA_PASSWORD=Test@123!
     ports:
-      - "1433:1433"
+      - "11433:1433"
     healthcheck:
       test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "Test@123!", "-Q", "SELECT 1", "-C"]
       interval: 10s
@@ -14,12 +14,20 @@ services:
       retries: 20
       start_period: 40s
 
-  # RabbitMQ for Message Broker 
+  # RabbitMQ for Message Broker
   broker:
     image: rabbitmq:3-management
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER:-admin}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS:-Admin123!}
     ports:
       - "5672:5672"
       - "15672:15672"
+
+  zipkin:
+    image: openzipkin/zipkin:2
+    ports:
+      - "9411:9411"
 
   # Your Modular Monolith API
   api:
@@ -31,14 +39,34 @@ services:
         condition: service_healthy
       broker:
         condition: service_started
+      zipkin:
+        condition: service_started
     ports:
       - "5000:8080"
     environment:
       - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__DefaultConnection=Server=db;Database=Navigation_Db;User Id=sa;Password=Test@123!;TrustServerCertificate=True;MultipleActiveResultSets=true;
+      - ConnectionStrings__DefaultConnection=${DOCKER_DB_CONNECTION:-Server=db;Database=Navigation_Db;User Id=sa;Password=Test@123!;TrustServerCertificate=True;MultipleActiveResultSets=true;}
       - MessageBroker__Host=broker
+      - MessageBroker__Port=5672
+      - MessageBroker__ManagementPort=15672
       - MessageBroker__Exchange=journey.events
- 
+      - MessageBroker__RewardQueue=reward-worker.journey-events
+      - MessageBroker__Username=${RABBITMQ_USER:-admin}
+      - MessageBroker__Password=${RABBITMQ_PASS:-Admin123!}
+      - Authentication__Microsoft__ClientSecret=${MS_CLIENT_SECRET}
+      - Authentication__Microsoft__ClientId=${MS_CLIENT_ID:-d626bb30-0fe2-4429-8fee-198ca99b8a5e}
+      - Authentication__Microsoft__TenantId=${MS_TENANT_ID:-13ad7717-2bb9-4e93-9517-59435abe64fc}
+      - EmailSettings__SmtpServer=${EMAIL_SMTP_SERVER:-smtp.gmail.com}
+      - EmailSettings__Port=${EMAIL_SMTP_PORT:-587}
+      - EmailSettings__SenderEmail=${EMAIL_SENDER_EMAIL}
+      - EmailSettings__SenderName=${EMAIL_SENDER_NAME:-Journey App}
+      - EmailSettings__Username=${EMAIL_USERNAME}
+      - EmailSettings__Password=${EMAIL_PASSWORD}
+      - EmailSettings__EnableSsl=${EMAIL_ENABLE_SSL:-true}
+      - OpenTelemetry__ZipkinEndpoint=http://zipkin:9411/api/v2/spans
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
   rewardworker:
     build:
       context: .
@@ -49,12 +77,15 @@ services:
       broker:
         condition: service_started
     environment:
-      - ConnectionStrings__DefaultConnection=Server=db;Database=Navigation_Db;User Id=sa;Password=Test@123!;TrustServerCertificate=True;MultipleActiveResultSets=true;
+      - ConnectionStrings__DefaultConnection=${DOCKER_DB_CONNECTION:-Server=db;Database=Navigation_Db;User Id=sa;Password=Test@123!;TrustServerCertificate=True;MultipleActiveResultSets=true;}
       - MessageBroker__Host=broker
       - MessageBroker__Exchange=journey.events
       - MessageBroker__RewardQueue=reward-worker.journey-events
- 
- 
+      - MessageBroker__Username=${RABBITMQ_USER:-admin}
+      - MessageBroker__Password=${RABBITMQ_PASS:-Admin123!}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
   frontend:
     build:
       context: ./frontend
@@ -62,5 +93,5 @@ services:
     ports:
       - "4200:80"
     depends_on:
-        api:
-            condition: service_started
+      api:
+        condition: service_started

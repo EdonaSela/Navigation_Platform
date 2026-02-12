@@ -2,19 +2,25 @@ using FluentValidation;
 using JourneyService.Api.Hubs;
 
 using JourneyService.Application.Common.Interfaces;
+using JourneyService.Application.Jorneys.Exceptions;
 using JourneyService.Application.Journeys.Commands;
 using JourneyService.Application.Journeys.Validators;
 using JourneyService.Domain.Entities;
 using JourneyService.Infrastructure.Persistence;
 using JourneyService.Infrastructure.Messaging;
 using JourneyService.Infrastructure.Services;
+using JourneyService.Api.Observability;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using Prometheus;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json;
@@ -37,6 +43,8 @@ var postLogoutRedirectUri = builder.Configuration["Authentication:Microsoft:Post
 
 builder.Services.AddSignalR();
 builder.Services.AddScoped<IHubNotifier, HubNotifier>();
+builder.Services.AddHttpClient();
+builder.Services.AddSingleton<DbLatencyMetricsInterceptor>();
 
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 //builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -44,11 +52,35 @@ JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+           .AddInterceptors(sp.GetRequiredService<DbLatencyMetricsInterceptor>())
            .AddInterceptors(new ConvertDomainEventsToOutboxMessagesInterceptor());
 });
 
 builder.Services.AddScoped<IApplicationDbContext>(provider =>
     provider.GetRequiredService<ApplicationDbContext>());
+
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(resource => resource.AddService("JourneyService.Api"))
+    .WithTracing(tracing =>
+    {
+        tracing
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddSqlClientInstrumentation()
+            .AddZipkinExporter(options =>
+            {
+                options.Endpoint = new Uri(
+                    builder.Configuration["OpenTelemetry:ZipkinEndpoint"]
+                    ?? "http://zipkin:9411/api/v2/spans");
+            });
+    });
+
+builder.Services.AddHealthChecks()
+    .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy(), tags: new[] { "live" })
+    .AddDbContextCheck<ApplicationDbContext>("sql", tags: new[] { "ready" })
+    .AddCheck<RabbitMqHealthCheck>("rabbitmq", tags: new[] { "ready" });
+
+builder.Services.AddHostedService<BrokerLagMetricsService>();
 
 builder.Services.AddAuthentication(options => {
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -291,12 +323,27 @@ app.UseExceptionHandler(errorApp =>
     errorApp.Run(async context =>
     {
         var correlationId = context.TraceIdentifier;
+        var exceptionFeature = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
+        var exception = exceptionFeature?.Error;
 
+        var (statusCode, message) = exception switch
+        {
+            ValidationException validationException => (
+                StatusCodes.Status400BadRequest,
+                string.Join("; ", validationException.Errors.Select(e => e.ErrorMessage).Distinct())
+            ),
+            ForbiddenAccessException forbiddenException => (StatusCodes.Status403Forbidden, forbiddenException.Message),
+            UnauthorizedAccessException unauthorizedAccessException => (StatusCodes.Status403Forbidden, unauthorizedAccessException.Message),
+            KeyNotFoundException keyNotFoundException => (StatusCodes.Status404NotFound, keyNotFoundException.Message),
+            _ => (StatusCodes.Status500InternalServerError, "An internal server error occurred.")
+        };
 
-        context.Response.StatusCode = 500;
+        context.Response.StatusCode = statusCode;
+        context.Response.ContentType = "application/json";
+
         await context.Response.WriteAsJsonAsync(new
         {
-            Error = "An internal authentication error occurred.",
+            Error = message,
             CorrelationId = correlationId
         });
     });
@@ -309,6 +356,9 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseSerilogRequestLogging();
+app.UseHttpMetrics();
 
 app.UseCors("AngularClient");
 
@@ -319,10 +369,19 @@ app.UseAuthorization();
 
 
 app.MapControllers();
+app.MapMetrics("/metrics");
+app.MapHealthChecks("/healthz", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("live")
+});
+app.MapHealthChecks("/readyz", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready")
+});
 
 
 
-// Apply migrations automatically on startup (useful for containerized environments).
+// Migration ne startup
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();

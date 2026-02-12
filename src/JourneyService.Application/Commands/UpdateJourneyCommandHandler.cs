@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using JourneyService.Application.Jorneys.Exceptions;
 using static JourneyService.Domain.Events.JourneyEvents;
 
 namespace JourneyService.Application.Journeys.Handlers;
@@ -40,7 +41,7 @@ public class UpdateJourneyCommandHandler : IRequestHandler<UpdateJourneyCommand>
   
         if (journey.UserId != currentUserId)
         {
-            throw new UnauthorizedAccessException("You do not own this journey.");
+            throw new ForbiddenAccessException();
         }
 
         var oldDistance = journey.Distance;

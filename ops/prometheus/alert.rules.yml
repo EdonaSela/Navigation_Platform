@@ -1,0 +1,11 @@
+groups:
+  - name: navigation-platform-alerts
+    rules:
+      - alert: RabbitMqQueueLagHigh
+        expr: navigation_broker_queue_lag_messages > 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "RabbitMQ queue lag is high"
+          description: "Queue lag has been above 100 messages for more than 5 minutes."

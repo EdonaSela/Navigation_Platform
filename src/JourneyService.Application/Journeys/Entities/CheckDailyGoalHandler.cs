@@ -60,10 +60,6 @@ public class CheckDailyGoalHandler :
             }
         }
 
-        //var latestJourney = journeysToday.OrderByDescending(j => j.StartTime).FirstOrDefault();
-        //if (latestJourney != null)
-        //{
-        //    await _hubContext.Clients.All.SendAsync("JourneyCreated", latestJourney, ct);
-        //}
+       
     }
 }

@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal,computed, effect } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, Validators, NonNullableFormBuilder } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -172,8 +173,8 @@ readonly isAlreadyFavorited = computed(() => {
         next: () => {
           this.successMessage.set('Journey updated.');
         },
-        error: () => {
-          this.errorMessage.set('Failed to update journey.');
+        error: (err: HttpErrorResponse) => {
+          this.errorMessage.set(this.getApiErrorMessage(err, 'Failed to update journey.'));
         }
       });
   }
@@ -310,5 +311,18 @@ toggleFavorite1() {
         console.error(err);
       }
     });
+  }
+
+  private getApiErrorMessage(err: HttpErrorResponse, fallback: string): string {
+    const apiError = err?.error?.error;
+    if (typeof apiError === 'string' && apiError.trim().length > 0) {
+      return apiError;
+    }
+
+    if (err.status === 403) {
+      return 'You do not have permission to update this journey.';
+    }
+
+    return fallback;
   }
 }

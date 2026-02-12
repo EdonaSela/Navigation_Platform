@@ -23,7 +23,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ASPNETCORE_HTTPS_PORTS": "8081",
         "ASPNETCORE_HTTP_PORTS": "8080",
-        "ConnectionStrings__DefaultConnection": "Server=host.docker.internal,1433;Database=Navigation_Db;User Id=sa;Password=Test@123!;TrustServerCertificate=True;MultipleActiveResultSets=true",
+        "ConnectionStrings__DefaultConnection": "Server=host.docker.internal,1433;Database=Navigation_Db;User Id=navuser;Password=Zxasqw1@;TrustServerCertificate=True;MultipleActiveResultSets=true",
         "MessageBroker__Host": "host.docker.internal",
         "MessageBroker__Exchange": "journey.events"
       },
