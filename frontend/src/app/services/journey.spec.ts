@@ -8,6 +8,8 @@ describe('Journey', () => {
   let httpMock: HttpTestingController;
 
   beforeEach(() => {
+    TestBed.resetTestingModule();
+
     TestBed.configureTestingModule({
       providers: [
         JourneyService,
@@ -30,7 +32,7 @@ describe('Journey', () => {
   it('should call getJourneys with paging parameters', () => {
     service.getJourneys(2, 15).subscribe();
 
-    const req = httpMock.expectOne('http://localhost:5122/api/journeys?Page=2&PageSize=15');
+    const req = httpMock.expectOne('/api/journeys?Page=2&PageSize=15');
     expect(req.request.method).toBe('GET');
     req.flush([]);
   });
@@ -38,7 +40,7 @@ describe('Journey', () => {
   it('should call getJourneyById with credentials', () => {
     service.getJourneyById('journey-1').subscribe();
 
-    const req = httpMock.expectOne('http://localhost:5122/api/journeys/journey-1');
+    const req = httpMock.expectOne('/api/journeys/journey-1');
     expect(req.request.method).toBe('GET');
     expect(req.request.withCredentials).toBe(true);
     req.flush({});
@@ -57,7 +59,7 @@ describe('Journey', () => {
 
     service.updateJourney('journey-1', payload).subscribe();
 
-    const req = httpMock.expectOne('http://localhost:5122/api/journeys/journey-1');
+    const req = httpMock.expectOne('/api/journeys/journey-1');
     expect(req.request.method).toBe('PUT');
     expect(req.request.withCredentials).toBe(true);
     req.flush({});
@@ -72,7 +74,7 @@ describe('Journey', () => {
     }).subscribe();
 
     const req = httpMock.expectOne((request) =>
-      request.url === 'http://localhost:5122/api/admin/journeys' &&
+      request.url === '/api/admin/journeys' &&
       request.params.get('page') === '1' &&
       request.params.get('pageSize') === '20' &&
       !request.params.has('orderBy') &&
