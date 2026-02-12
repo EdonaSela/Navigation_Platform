@@ -37,6 +37,22 @@ describe('Journey', () => {
     req.flush([]);
   });
 
+  it('should call createJourney with credentials', () => {
+    service.createJourney({
+      startLocation: 'A',
+      startTime: '2026-01-01T10:00:00Z',
+      arrivalLocation: 'B',
+      arrivalTime: '2026-01-01T11:00:00Z',
+      distanceKm: 10,
+      transportType: 'Car'
+    }).subscribe();
+
+    const req = httpMock.expectOne('/api/journeys');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.withCredentials).toBe(true);
+    req.flush({ id: 'journey-1' });
+  });
+
   it('should call getJourneyById with credentials', () => {
     service.getJourneyById('journey-1').subscribe();
 
@@ -65,6 +81,15 @@ describe('Journey', () => {
     req.flush({});
   });
 
+  it('should call deleteJourney with credentials', () => {
+    service.deleteJourney('journey-1').subscribe();
+
+    const req = httpMock.expectOne('/api/journeys/journey-1');
+    expect(req.request.method).toBe('DELETE');
+    expect(req.request.withCredentials).toBe(true);
+    req.flush({});
+  });
+
   it('should clean null and empty params in getAdminJourneys', () => {
     service.getAdminJourneys({
       page: 1,
@@ -81,6 +106,72 @@ describe('Journey', () => {
       !request.params.has('status'));
 
     expect(req.request.method).toBe('GET');
+    expect(req.request.withCredentials).toBe(true);
     req.flush([]);
+  });
+
+  it('should call shareJourney', () => {
+    service.shareJourney('journey-1', ['a@test.com']).subscribe();
+
+    const req = httpMock.expectOne('/api/journeys/journey-1/share');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ emails: ['a@test.com'] });
+    req.flush({});
+  });
+
+  it('should call generatePublicLink', () => {
+    service.generatePublicLink('journey-1').subscribe();
+
+    const req = httpMock.expectOne('/api/journeys/journey-1/public-link');
+    expect(req.request.method).toBe('POST');
+    req.flush({ url: 'http://x' });
+  });
+
+  it('should call revokePublicLink', () => {
+    service.revokePublicLink('journey-1').subscribe();
+
+    const req = httpMock.expectOne('/api/journeys/journey-1/public-link');
+    expect(req.request.method).toBe('DELETE');
+    req.flush({});
+  });
+
+  it('should call getPublicJourney', () => {
+    service.getPublicJourney('token-1').subscribe();
+
+    const req = httpMock.expectOne('/api/journeys/shared/token-1');
+    expect(req.request.method).toBe('GET');
+    req.flush({});
+  });
+
+  it('should call favorite and unfavorite', () => {
+    service.favoriteJourney('journey-1').subscribe();
+    const favReq = httpMock.expectOne('/api/journeys/journey-1/favorite');
+    expect(favReq.request.method).toBe('POST');
+    favReq.flush({});
+
+    service.unfavoriteJourney('journey-1').subscribe();
+    const unfavReq = httpMock.expectOne('/api/journeys/journey-1/favorite');
+    expect(unfavReq.request.method).toBe('DELETE');
+    unfavReq.flush({});
+  });
+
+  it('should call getPublicJourneys', () => {
+    service.getPublicJourneys(1, 20).subscribe();
+
+    const req = httpMock.expectOne('/api/journeys/public?Page=1&PageSize=20');
+    expect(req.request.method).toBe('GET');
+    req.flush([]);
+  });
+
+  it('should call monthly stats endpoints', () => {
+    service.getMonthlyStats1().subscribe();
+    const req1 = httpMock.expectOne('/api/admin/statistics/monthly-distance');
+    expect(req1.request.method).toBe('GET');
+    req1.flush([]);
+
+    service.getMonthlyStats().subscribe();
+    const req2 = httpMock.expectOne('/api/admin/statistics/monthly-distance');
+    expect(req2.request.method).toBe('GET');
+    req2.flush({ items: [], pageNumber: 1, totalPages: 1, totalCount: 0 });
   });
 });

@@ -24,8 +24,12 @@ export class App {
   localStorage.clear();
   sessionStorage.clear();
 
-  window.location.href = '/api/auth/logout';
+  this.redirectTo('/api/auth/logout');
 }
 
   public readonly authService = inject(AuthService);
+
+  private redirectTo(url: string): void {
+    window.location.assign(url);
+  }
 }

@@ -29,7 +29,7 @@ constructor() {
 logout() {
   localStorage.clear();
   sessionStorage.clear();
-  window.location.href = `${this.apiUrl}/logout`;
+  this.redirectTo(`${this.apiUrl}/logout`);
 }
  getUserId(): string | null {
     return this.userIdSignal();
@@ -50,7 +50,7 @@ readonly isAdmin = computed(() => {
 });
 
 
- private fetchCurrentUser(): void {
+private fetchCurrentUser(): void {
   // 1. Change the GET type to 'any' to receive the full object
   this.http.get<any>(`${this.apiUrl}/me`).subscribe({
     next: (user) => {
@@ -68,6 +68,9 @@ readonly isAdmin = computed(() => {
   });
 }
 
+private redirectTo(url: string): void {
+  window.location.assign(url);
+}
 
 }
 
