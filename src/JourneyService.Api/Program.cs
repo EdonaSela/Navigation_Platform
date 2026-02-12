@@ -1,15 +1,14 @@
 using FluentValidation;
 using JourneyService.Api.Hubs;
-
+using JourneyService.Api.Observability;
 using JourneyService.Application.Common.Interfaces;
 using JourneyService.Application.Jorneys.Exceptions;
 using JourneyService.Application.Journeys.Commands;
 using JourneyService.Application.Journeys.Validators;
 using JourneyService.Domain.Entities;
-using JourneyService.Infrastructure.Persistence;
 using JourneyService.Infrastructure.Messaging;
+using JourneyService.Infrastructure.Persistence;
 using JourneyService.Infrastructure.Services;
-using JourneyService.Api.Observability;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -21,11 +20,12 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Prometheus;
+using Serilog;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Serilog;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog((context, services, configuration) => configuration
@@ -281,12 +281,22 @@ builder.Services.AddCors(options => {
 });
 builder.Services.AddRateLimiter(options =>
 {
-    options.AddFixedWindowLimiter("login-limit", opt =>
+    options.AddPolicy("login-limit", httpContext =>
     {
-        opt.Window = TimeSpan.FromMinutes(1);
-        opt.PermitLimit = 5; 
-        opt.QueueLimit = 0;
+        var ip = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: ip,
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            });
     });
+
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
 builder.Services.AddAuthorization(options =>
 {
