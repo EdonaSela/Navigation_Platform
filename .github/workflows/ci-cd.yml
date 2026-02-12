@@ -11,7 +11,6 @@ env:
   DOTNET_VERSION: '9.0.x'
   NODE_VERSION: '20'
   REGISTRY: ghcr.io
-  IMAGE_PREFIX: ${{ github.repository_owner }}/navigation-platform
 
 jobs:
   build-test-analyze:
@@ -35,6 +34,12 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
           cache-dependency-path: frontend/package-lock.json
+
+      - name: Set lowercase image prefix
+        shell: bash
+        run: |
+          owner_lower="$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')"
+          echo "IMAGE_PREFIX=${owner_lower}/navigation-platform" >> "$GITHUB_ENV"
 
       - name: Restore
         run: dotnet restore NavigationPlatform.sln
