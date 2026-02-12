@@ -1,0 +1,10 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace JourneyService.Application.Journeys.Queries
+{
+    public record UserListItemDto(string Id, string Email, string Status, DateTime CreatedAt);
+}

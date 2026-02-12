@@ -1,0 +1,17 @@
+<section class="auth-page">
+  <div class="auth-card">
+    <header class="auth-header">
+      <h1>Welcome</h1>
+      <p>Sign in</p>
+    </header>
+
+    <button type="button" (click)="redirectToAzureLogin()" [disabled]="isRedirecting()">
+      @if (isRedirecting()) {
+        Redirecting...
+      } @else {
+        Continue with Microsoft
+      }
+    </button>
+
+  </div>
+</section>

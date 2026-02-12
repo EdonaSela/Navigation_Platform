@@ -1,0 +1,66 @@
+.app-shell {
+  min-height: 100vh;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: #1d4ed8;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.brand-text {
+  font-size: 1rem;
+}
+
+.app-nav {
+  display: flex;
+  gap: 16px;
+}
+
+.app-nav a {
+  text-decoration: none;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.app-nav a.is-active {
+  color: #1d4ed8;
+}
+
+.logout-link {
+  color: #b91c1c;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.app-main {
+  padding-bottom: 48px;
+}

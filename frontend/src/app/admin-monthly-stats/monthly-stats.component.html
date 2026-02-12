@@ -1,0 +1,71 @@
+<!-- <div class="stats-container">
+  <h2>Your Monthly Journey Totals 📊</h2>
+  
+  @if (stats && stats.items.length > 0) {
+    <table class="stats-table">
+      <thead>
+        <tr>
+          <th>Month</th>
+          <th>Year</th>
+          <th>Total Distance</th>
+        </tr>
+      </thead>
+<tbody>
+  <tr *ngFor="let item of stats?.items">
+    <td>{{ getMonthName(item.month) }}</td>
+    <td>{{ item.year }}</td>
+    <td>{{ item.totalDistanceKm }} km</td>
+  </tr>
+</tbody>
+    </table>
+
+    <div class="pagination-info">
+      Total Records: {{ stats.totalCount }}
+    </div>
+    
+  } @else {
+    <div class="empty-state">
+      <p>No journey statistics found yet. 📭</p>
+    </div>
+  }
+</div> -->
+
+<section class="page">
+  <header class="page-header">
+    <h1>Statistics</h1>
+    <p class="page-subtitle">Overview of your travel history and distances.</p>
+  </header>
+
+  <div class="page-content">
+    <div class="card">
+      <div class="card-header">
+        <h2>Your Monthly Journey Totals 📊</h2>
+      </div>
+      
+      @if (stats && stats.items.length > 0) {
+        <div class="table">
+          <div class="table-row table-head">
+            <span>Month</span>
+            <span>Year</span>
+            <span>Total Distance</span>
+          </div>
+
+          <div class="table-row" *ngFor="let item of stats.items">
+            <span class="text-bold">{{ getMonthName(item.month) }}</span>
+            <span>{{ item.year }}</span>
+            <span>{{ item.totalDistanceKm }} km</span>
+          </div>
+        </div>
+
+        <div class="pager">
+          <span class="muted">Total Records: {{ stats.totalCount }}</span>
+        </div>
+        
+      } @else {
+        <div class="empty-state">
+          <p class="muted">No journey statistics found yet. 📭</p>
+        </div>
+      }
+    </div>
+  </div>
+</section>

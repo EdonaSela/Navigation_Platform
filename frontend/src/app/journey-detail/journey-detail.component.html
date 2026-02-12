@@ -1,0 +1,141 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1>Journey Details</h1>
+      <p class="page-subtitle">Review and update a single trip.</p>
+    </div>
+    <a class="ghost" routerLink="/journeys">Back to list</a>
+  </header>
+
+  @if (isLoading()) {
+    <p class="muted">Loading journey...</p>
+  } @else if (!journey()) {
+    <p class="form-error" role="alert">Journey not found.</p>
+  } @else {
+  @if (journey()!.isDailyGoalAchieved) {
+    <p class="reward-badge" role="status">Daily Reward Achieved</p>
+  }
+
+  <div class="actions">
+  <button type="button" (click)="toggleFavorite()" [disabled]="isFavoriting()">
+  @if (isFavoriting()) {
+    <span>⌛ Saving...</span>
+  } @else {
+    <span>{{ isAlreadyFavorited() ? '⭐ Favorited' : '☆ Favorite' }}</span>
+    
+  }
+</button>
+
+@if (isOwner() && totalFavorites() > 0) {
+    <p class="text-success">
+      Great! {{ totalFavorites() }} user(s) have favorited your journey.
+    </p>
+  }
+
+  <!-- <button type="button" class="danger" (click)="deleteJourney()">
+    🗑️ Delete Journey
+  </button> -->
+</div>
+<br/>
+    <form class="card" [formGroup]="form" (ngSubmit)="save()" novalidate>
+      <div class="field">
+        <label for="detailStartLocation">Start Location</label>
+        <input id="detailStartLocation" type="text" formControlName="startLocation" required />
+      </div>
+
+      <div class="field">
+        <label for="detailStartTime">Start Time</label>
+        <input id="detailStartTime" type="datetime-local" formControlName="startTime" required />
+      </div>
+
+      <div class="field">
+        <label for="detailArrivalLocation">Arrival Location</label>
+        <input id="detailArrivalLocation" type="text" formControlName="arrivalLocation" required />
+      </div>
+
+      <div class="field">
+        <label for="detailArrivalTime">Arrival Time</label>
+        <input id="detailArrivalTime" type="datetime-local" formControlName="arrivalTime" required />
+      </div>
+
+      <div class="field">
+        <label for="detailDistanceKm">Distance (km)</label>
+        <input
+          id="detailDistanceKm"
+          type="number"
+          inputmode="decimal"
+          min="0.01"
+          step="0.01"
+          formControlName="distanceKm"
+          required
+        />
+      </div>
+
+      <div class="field">
+        <label for="detailTransportType">Transport Type</label>
+        <select id="detailTransportType" formControlName="transportType" required>
+          <option value="Car">Car</option>
+          <option value="Train">Train</option>
+          <option value="Bike">Bike</option>
+          <option value="Walk">Walk</option>
+        </select>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" [disabled]="form.invalid || isSaving()">
+          @if (isSaving()) {
+            Saving...
+          } @else {
+            Save Changes
+          }
+        </button>
+        <button type="button" class="danger" (click)="delete()">Delete</button>
+      </div>
+
+      @if (successMessage()) {
+        <p class="form-success" role="status">{{ successMessage() }}</p>
+      }
+      @if (errorMessage()) {
+        <p class="form-error" role="alert">{{ errorMessage() }}</p>
+      }
+    </form>
+
+    
+ <div class="card" style="margin-top: 2rem;">
+  <h3>Share Journey</h3>
+  <p class="muted">Share this trip with specific users or via a public link.</p>
+
+  <div class="field">
+    <label for="shareWithUserEmail">Friend's Email</label>
+    <div style="display: flex; gap: 0.5rem;">
+      <input id="shareWithUserEmail" #friendEmail type="email" placeholder="Enter email..." />
+      <button type="button" (click)="shareWithUser(friendEmail.value); friendEmail.value=''">
+        Share
+      </button>
+    </div>
+  </div>
+
+  <hr style="margin: 1.5rem 0;" />
+
+  <div class="public-link-actions">
+    @if (!publicUrl()) {
+      <button type="button" class="ghost" (click)="generateLink()">
+        Generate Public Link
+      </button>
+    } @else {
+      <div class="field">
+        <label>Unique Sharing URL</label>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <input type="text" [value]="publicUrl()" readonly style="flex: 1;" />
+          <button type="button" class="danger" (click)="revokeLink()">Revoke</button>
+        </div>
+        <p class="muted" style="font-size: 0.8rem;">
+          Anyone with this link can view this journey.
+        </p>
+      </div>
+    }
+  </div>
+</div>
+  }
+
+</section>

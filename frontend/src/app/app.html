@@ -1,0 +1,26 @@
+<div class="app-shell">
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-mark">NP</span>
+      <span class="brand-text">Navigation Platform</span>
+    </div>
+    <nav class="app-nav" aria-label="Primary">
+      <a routerLink="/journeys" routerLinkActive="is-active">Journeys</a>
+      <a routerLink="/public-journeys" routerLinkActive="is-active">Public Journeys</a>
+
+      @if (authService.isAdmin()) {
+    <a routerLink="/admin/journeys" class="admin-link">Admin Dashboard</a>
+    <a routerLink="monthly-stats" class="admin-link">Monthly statistic</a>
+    <a routerLink="users" class="admin-link">Users</a>
+
+
+  }
+      <a routerLink="/auth/login" routerLinkActive="is-active">Sign in</a>
+      <button class="logout-link" type="button" (click)="logout()">Logout</button>
+    </nav>
+  </header>
+
+  <main class="app-main">
+    <router-outlet></router-outlet>
+  </main>
+</div>

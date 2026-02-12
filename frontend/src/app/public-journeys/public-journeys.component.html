@@ -1,0 +1,58 @@
+<section class="page">
+  <header class="page-header">
+    <h1>Public Journeys</h1>
+    <p class="page-subtitle">All journeys shared publicly by users.</p>
+  </header>
+
+  <div class="card">
+    <div class="card-header">
+      <h2>Shared Journey List</h2>
+      <button type="button" class="ghost" (click)="loadPublicJourneys()" [disabled]="isLoading()">
+        Refresh
+      </button>
+    </div>
+
+    @if (errorMessage()) {
+      <p class="muted">{{ errorMessage() }}</p>
+    } @else if (isLoading()) {
+      <p class="muted">Loading public journeys...</p>
+    } @else if (journeys().length === 0) {
+      <p class="muted">No public journeys available.</p>
+    } @else {
+      <div class="table">
+        <div class="table-row table-head">
+          <span>Route</span>
+          <span>Times</span>
+          <span>Transport</span>
+          <span>Distance</span>
+          <span class="actions">Actions</span>
+        </div>
+        @for (journey of journeys(); track journey.id) {
+          <div class="table-row">
+            <span>{{ journey.startLocation }} -> {{ journey.arrivalLocation }}</span>
+            <span>{{ journey.startTime }} -> {{ journey.arrivalTime }}</span>
+            <span>{{ journey.transportType }}</span>
+            <span>{{ journey.distanceKm }} km</span>
+            <span class="actions">
+              @if (journey.publicSharingToken) {
+                <a class="link" [routerLink]="['/shared', journey.publicSharingToken]">Open</a>
+              } @else {
+                <span class="muted">N/A</span>
+              }
+            </span>
+          </div>
+        }
+      </div>
+    }
+
+    <div class="pager">
+      <button type="button" class="ghost" (click)="previousPage()" [disabled]="page() <= 1">
+        Previous
+      </button>
+      <span>Page {{ page() }} of {{ totalPages() }}</span>
+      <button type="button" class="ghost" (click)="nextPage()" [disabled]="page() >= totalPages()">
+        Next
+      </button>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,106 @@
+﻿<section class="page">
+  <header class="page-header">
+    <h1>Admin: Journey Monitor</h1>
+    <p class="page-subtitle">Oversee and filter all system journeys.</p>
+  </header>
+
+  <div class="grid">
+    <aside class="card">
+      <h2>Filters</h2>
+      <form [formGroup]="filterForm" (ngSubmit)="applyFilters()" class="filter-form">
+        <div class="field">
+          <label>User ID</label>
+          <input formControlName="userId" placeholder="Search by ID...">
+        </div>
+
+        <div class="field">
+          <label>Transport</label>
+          <select formControlName="transportType">
+            <option value="">All Types</option>
+            <option value="Car">Car</option>
+            <option value="Train">Train</option>
+            <option value="Bike">Bike</option>
+            <option value="Walk">Walk</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Min Distance (km)</label>
+          <input type="number" formControlName="minDistance" placeholder="0.00">
+        </div>
+
+        <div class="field">
+          <label>Max Distance (km)</label>
+          <input type="number" formControlName="maxDistance" placeholder="1000.00">
+        </div>
+
+        <div class="field">
+          <label>Start Date From</label>
+          <input type="date" formControlName="startDateFrom">
+        </div>
+
+        <div class="field">
+          <label>Start Date To</label>
+          <input type="date" formControlName="startDateTo">
+        </div>
+
+        <div class="field">
+          <label>Arrival Date From</label>
+          <input type="date" formControlName="arrivalDateFrom">
+        </div>
+
+        <div class="field">
+          <label>Arrival Date To</label>
+          <input type="date" formControlName="arrivalDateTo">
+        </div>
+
+        <button type="submit" class="btn-search">Apply Filters</button>
+      </form>
+    </aside>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>Global Journey List</h2>
+        <span class="muted">Total: {{ totalCount() }}</span>
+      </div>
+
+      <div class="table">
+        <div class="table-row table-head">
+          <span>User & Route</span>
+          <span>Distance</span>
+          <span>Favorites</span>
+          <span class="actions">Details</span>
+        </div>
+
+        @for (j of journeys(); track j.id) {
+          <div class="table-row">
+            <span>
+              <code class="user-id-badge">{{ j.userId.substring(0, 8) }}...</code><br>
+              <small>{{ j.startLocation }} -> {{ j.arrivalLocation }}</small>
+            </span>
+            <span>{{ j.distanceKm }} km</span>
+            <span class="favorites-count">
+              <span class="favorite-star" aria-hidden="true">&#9733;</span>
+              {{ j.favorites.length }}
+            </span>
+            <span class="actions">
+              <a class="link" [routerLink]="['/journeys', j.id]">View</a>
+            </span>
+          </div>
+        }
+      </div>
+
+      <div class="pager">
+        <button type="button" class="ghost" (click)="currentPage = currentPage - 1; loadAdminData()" [disabled]="currentPage <= 1">
+          Previous
+        </button>
+        <span>Page {{ currentPage }}</span>
+        <button type="button" class="ghost" (click)="currentPage = currentPage + 1; loadAdminData()" [disabled]="journeys().length < pageSize">
+          Next
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+
