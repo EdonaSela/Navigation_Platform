@@ -20,19 +20,7 @@ public class AccountController : ControllerBase
         _configuration = configuration;
     }
 
-    //[EnableRateLimiting("login-limit")]
-    //[HttpGet("login")]
-    //public IActionResult Login(string returnUrl = "/")
-    //{
-    //    var props = new AuthenticationProperties
-    //    {
-    //        RedirectUri = returnUrl,
-    //        IsPersistent = true // Important for "Keep me signed in"
-    //    };
-    //    props.Items.Add("prompt", "select_account");
-
-    //    return Challenge(props, OpenIdConnectDefaults.AuthenticationScheme);
-    //}
+    
     [EnableRateLimiting("login-limit")]
     [HttpGet("login")]
     public IActionResult Login(string returnUrl = "/")
@@ -45,29 +33,13 @@ public class AccountController : ControllerBase
         return Challenge(props, OpenIdConnectDefaults.AuthenticationScheme);
     }
 
-    //[HttpPost("logout")] 
-    //[Authorize]
-    //public IActionResult Logout()
-    //{
-    //    var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
-
-    //    // 2. Extract all claims into a list for easy viewing in the Debugger
-    //    var userClaims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
-    //    var callbackUrl = "http://localhost:4200/auth/login";
-
-    //    return SignOut(
-    //        new AuthenticationProperties { RedirectUri = callbackUrl },
-    //        CookieAuthenticationDefaults.AuthenticationScheme,
-    //        OpenIdConnectDefaults.AuthenticationScheme);
-
-
-    //}
+  
 
     [HttpGet("logout")] 
 
     public async Task Logout()
     {
-        // 1. Clear the local app cookie
+       
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
         var redirectUri = _configuration["Authentication:Microsoft:SignedOutCallbackPath"];
