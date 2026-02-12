@@ -23,7 +23,7 @@ if (-not $SkipFrontend) {
   Write-Host "Running frontend tests with coverage..."
   Push-Location "$repoRoot\frontend"
   try {
-    npm test -- --watch=false --code-coverage
+    npm run test:coverage -- --watch=false
   } finally {
     Pop-Location
   }

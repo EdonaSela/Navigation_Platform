@@ -18,7 +18,7 @@ Run tests with coverage:
 
 ```powershell
 cd frontend
-npm test -- --watch=false --code-coverage
+npm run test:coverage -- --watch=false
 ```
 
 Cobertura XML is expected under:

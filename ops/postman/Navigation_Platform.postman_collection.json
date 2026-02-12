@@ -1,0 +1,187 @@
+{
+  "info": {
+    "name": "Navigation Platform API",
+    "_postman_id": "9e03b253-2d19-4f4b-8788-5f53ea5958fd",
+    "description": "Core API calls for JourneyService.Api.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000"
+    },
+    {
+      "key": "journeyId",
+      "value": "00000000-0000-0000-0000-000000000000"
+    },
+    {
+      "key": "publicToken",
+      "value": "replace-with-token"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health - Liveness",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/healthz"
+      }
+    },
+    {
+      "name": "Health - Readiness",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/readyz"
+      }
+    },
+    {
+      "name": "Metrics",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/metrics"
+      }
+    },
+    {
+      "name": "Auth - Login Redirect",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/auth/login"
+      }
+    },
+    {
+      "name": "Auth - Me",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/auth/me"
+      }
+    },
+    {
+      "name": "Journeys - Create",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"startLocation\": \"City Center\",\n  \"startTime\": \"2026-02-12T08:00:00Z\",\n  \"arrivalLocation\": \"Airport\",\n  \"arrivalTime\": \"2026-02-12T09:00:00Z\",\n  \"distanceKm\": 24.5,\n  \"transportType\": \"Car\"\n}"
+        },
+        "url": "{{baseUrl}}/api/journeys"
+      }
+    },
+    {
+      "name": "Journeys - List",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/journeys?Page=1&PageSize=10"
+      }
+    },
+    {
+      "name": "Journeys - Get By Id",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/journeys/{{journeyId}}"
+      }
+    },
+    {
+      "name": "Journeys - Update",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"{{journeyId}}\",\n  \"startLocation\": \"City Center\",\n  \"startTime\": \"2026-02-12T08:10:00Z\",\n  \"arrivalLocation\": \"Airport\",\n  \"arrivalTime\": \"2026-02-12T09:20:00Z\",\n  \"distanceKm\": 26,\n  \"transportType\": \"Car\"\n}"
+        },
+        "url": "{{baseUrl}}/api/journeys/{{journeyId}}"
+      }
+    },
+    {
+      "name": "Journeys - Delete",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/journeys/{{journeyId}}"
+      }
+    },
+    {
+      "name": "Journeys - Share",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"emails\": [\"friend@example.com\"]\n}"
+        },
+        "url": "{{baseUrl}}/api/journeys/{{journeyId}}/share"
+      }
+    },
+    {
+      "name": "Journeys - Generate Public Link",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/journeys/{{journeyId}}/public-link"
+      }
+    },
+    {
+      "name": "Journeys - Revoke Public Link",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/journeys/{{journeyId}}/public-link"
+      }
+    },
+    {
+      "name": "Journeys - Public By Token",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/journeys/shared/{{publicToken}}"
+      }
+    },
+    {
+      "name": "Journeys - Favorite",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/journeys/{{journeyId}}/favorite"
+      }
+    },
+    {
+      "name": "Journeys - Unfavorite",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/journeys/{{journeyId}}/favorite"
+      }
+    },
+    {
+      "name": "Admin - Filter Journeys",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/admin/journeys?page=1&pageSize=20&transportType=Car"
+      }
+    },
+    {
+      "name": "Admin - Monthly Distance",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/admin/statistics/monthly-distance"
+      }
+    },
+    {
+      "name": "Admin - Users",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/admin/users"
+      }
+    }
+  ]
+}
